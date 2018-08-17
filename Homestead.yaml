@@ -17,3 +17,4 @@ databases:
     - homestead
 name: portal-prototype-local
 hostname: portal.prototype.local
+mariadb: true
