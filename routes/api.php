@@ -19,6 +19,7 @@ Route::get('serial/{serial}', function ($serial) {
 });
 
 Route::get('serial/{serial}/file/{fid}', 'API\SerialsController@show')->where('fid', '[0-9]{1,3}');
+Route::patch('serial/{serial}/file/{fid}', 'API\SerialsController@update')->where('fid', '[0-9]{1,3}');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();

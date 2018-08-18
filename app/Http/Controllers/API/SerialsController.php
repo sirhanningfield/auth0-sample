@@ -33,6 +33,7 @@ class SerialsController extends Controller
      * Display the specified resource.
      *
      * @param  string  $serial
+     * @param  string  $file
      * @return \Illuminate\Http\Response
      */
     public function show($serial, $file)
@@ -45,12 +46,27 @@ class SerialsController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  string  $serial
+     * @param  string  $file
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $serial, $file)
     {
-        //
+        $file = \App\CompanyFile::where('serial', $serial)->where('number', $file)->firstOrFail();
+    
+        // We must manually fill in json fields as ->only() cannot address json data.
+        // $file->update($request->only(['data.address', 'data.name']));
+        if($request->filled('data.address')) {
+            $file->address = $request->input('data.address');
+        }
+            
+        if($request->filled('data.name')) {
+            $file->name = $request->input('data.name');
+        }
+            
+        $file->save();
+
+        return new CompanyFileResource($file);
     }
 
     /**

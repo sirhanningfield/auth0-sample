@@ -10,5 +10,7 @@ class CompanyFile extends Model
 {
     use Uuids;
 
+    protected $fillable = ['serial', 'number', 'address'];
+
     public $incrementing = false;
 }
