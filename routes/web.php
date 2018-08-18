@@ -14,3 +14,8 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/start/{cfileid}', function () {
+    return view('start');
+})->middleware('signature')
+  ->name('file.start');
