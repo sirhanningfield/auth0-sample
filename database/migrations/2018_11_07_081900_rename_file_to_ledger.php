@@ -13,19 +13,8 @@ class RenameFileToLedger extends Migration
      */
     public function up()
     {
-        // Rename company_file to `ledger`
-        // Add "product" to ledger.
-        // Add business_id to ledger.
-
-        // Ledger: an abstract accounting entitity. Maps to a Financio biz or Premier serial+fileno.
-        // User: someone that can login
-        // Banking: Entity (i.e. RHB/DBS/etc)
-        // BankAccount: A bank account (account num, name/alias, etc.) FK -> banking + ledger.
-        // BankTransaction: <data/descript/credit/debit + FK-> bank_account.
-        
-
-        // CompanyFiles Resource -> `ledger` -> "Where Product = "Premier".
-        // Business Resoruce -> `ledger` -> "where Product = Financio".
+        // Rename company_files to `ledgers`
+        Schema::rename('company_files', 'ledgers');
     }
 
     /**
@@ -35,6 +24,7 @@ class RenameFileToLedger extends Migration
      */
     public function down()
     {
-        //
+        // rename `ledgers` back to `company_files`
+        Schema::rename('ledgers', 'company_files');
     }
 }
