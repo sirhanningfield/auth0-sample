@@ -12,4 +12,15 @@ class Ledger extends Model
     protected $fillable = ['serial', 'number', 'address'];
 
     public $incrementing = false;
+
+
+    public function bankAccounts()
+    {
+        return $this->hasMany('App\BankAccount');
+    }
+
+    public function bankCredentials()
+    {
+        return $this->hasMany('App\LedgerBankCredential');
+    }
 }
