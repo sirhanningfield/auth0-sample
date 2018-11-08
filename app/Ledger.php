@@ -5,8 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use App\Behaviours\Uuids;
 
-
-class CompanyFile extends Model 
+class Ledger extends Model
 {
     use Uuids;
 

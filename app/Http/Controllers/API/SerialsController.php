@@ -38,7 +38,7 @@ class SerialsController extends Controller
      */
     public function show($serial, $file)
     {
-        $file = \App\CompanyFile::where('serial', $serial)->where('number', $file)->firstOrFail();
+        $file = \App\Ledger::where('serial', $serial)->where('number', $file)->firstOrFail();
         return new CompanyFileResource($file);
     }
 
@@ -52,15 +52,15 @@ class SerialsController extends Controller
      */
     public function update(Request $request, $serial, $file)
     {
-        $file = \App\CompanyFile::where('serial', $serial)->where('number', $file)->firstOrFail();
+        $file = \App\Ledger::where('serial', $serial)->where('number', $file)->firstOrFail();
     
         // We must manually fill in json fields as ->only() cannot address json data.
         // $file->update($request->only(['data.address', 'data.name']));
-        if($request->filled('data.address')) {
+        if ($request->filled('data.address')) {
             $file->address = $request->input('data.address');
         }
             
-        if($request->filled('data.name')) {
+        if ($request->filled('data.name')) {
             $file->name = $request->input('data.name');
         }
             
