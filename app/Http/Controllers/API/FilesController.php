@@ -84,7 +84,19 @@ class FilesController extends Controller
             // Create new ledger
             $ledger = $this->createLedger($request);
 
-            return new CompanyFile($ledger);
+            $result = [
+                'status' => 0,
+                'description' => "Failed to create a new ledger"
+            ];
+            if ($ledger) {
+                $result = [
+                    'status' => 1,
+                    'description' => "Success",
+                    'data' => new CompanyFile($ledger)
+                ];
+            }
+
+            return $result;
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), $e->getCode() ? $e->getCode() : null);
         }
