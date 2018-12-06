@@ -16,9 +16,11 @@ class CompanyFile extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
+            'ledger_id' => $this->id,
+            'product' => $this->product,
             'serial' => $this->serial,
             'number' => $this->number,
+            'business_id' => $this->business_id,
             'name' => $this->name,
             'address' => $this->address,
             'created_at' => $this->created_at,

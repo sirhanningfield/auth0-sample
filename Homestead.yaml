@@ -7,14 +7,14 @@ keys:
     - ~/.ssh/id_rsa
 folders:
     -
-        map: /Users/developerjack/projects/abss/portal.prototype.local
+        map: /Users/financio03/Desktop/portal-app
         to: /home/vagrant/code
 sites:
     -
-        map: portal.prototype.local
+        map: dev.portal.abss
         to: /home/vagrant/code/public
 databases:
     - homestead
 name: portal-prototype-local
-hostname: portal.prototype.local
+hostname: dev.portal.abss
 mariadb: true
