@@ -48,7 +48,7 @@ class FilesController extends Controller
         $ledger->status = true; // default status is true for new ledgers
         
         if (!$ledger->save()) {
-            throw new Exception("Ledger already exists", 9999);
+            throw new Exception("Ledger already exists", 999);
         }
         return $ledger;
     }
@@ -73,7 +73,7 @@ class FilesController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response($validator->errors(), 400);
+                throw new Exception($validator->errors()->first(), 400);
             }
 
 
@@ -86,7 +86,7 @@ class FilesController extends Controller
 
             return new CompanyFile($ledger);
         } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception($e->getMessage(), $e->getCode() ? $e->getCode() : null);
         }
     }
 
