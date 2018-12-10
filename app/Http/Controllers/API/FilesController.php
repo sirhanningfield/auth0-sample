@@ -63,6 +63,20 @@ class FilesController extends Controller
         return true;
     }
 
+    private function validParams($request)
+    {
+        if ($request->product == Ledgers::TYPE_PREMIER) {
+            if (!isset($request->serial) || !isset($request->number) || isset($request->business_id)) {
+                return false;
+            }
+        } elseif ($request->product == Ledgers::TYPE_FINANCIO) {
+            if (!isset($request->business_id) || isset($request->serial) || isset($request->number)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -90,7 +104,13 @@ class FilesController extends Controller
 
             // check the request product type is valid
             if (!$this->productIsValid($request)) {
-                $result['description'] = "Please enter a valid product code";
+                $result['description'] = "Invalid product code";
+                return response()->json($result, 400);
+            }
+
+            // check request params
+            if (!$this->validParams($request)) {
+                $result['description'] = "Invalid parameters";
                 return response()->json($result, 400);
             }
 
