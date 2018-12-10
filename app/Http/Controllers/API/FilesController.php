@@ -31,12 +31,14 @@ class FilesController extends Controller
         } elseif (isset($request->business_id)) {
             $ledger = Ledger::where('business_id', '=', $request->business_id)->get();
         }
+
         if (count($ledger) > 0) {
-            throw new Exception("Ledger already exists", 9999);
+            return true;
         }
+        return false;
     }
 
-    private function createLedger($request)
+    private function createLedger($request, $result)
     {
         $ledger = new Ledger;
         $ledger->name = $request->name;
@@ -48,9 +50,17 @@ class FilesController extends Controller
         $ledger->status = true; // default status is true for new ledgers
         
         if (!$ledger->save()) {
-            throw new Exception("Ledger already exists", 999);
+            return false;
         }
         return $ledger;
+    }
+
+    private function productIsValid($request)
+    {
+        if ($request->product != Ledgers::TYPE_PREMIER && $request->product != Ledgers::TYPE_FINANCIO) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -62,10 +72,11 @@ class FilesController extends Controller
     public function addLedger(Request $request)
     {
         try {
+            $result['status'] = 0;
             // validate the incoming request
             $validator = Validator::make($request->all(), [
                 "name" => "required|string",
-                "address" => "sometimes|string",
+                "address" => "nullable|string",
                 "product"  => "required|integer",
                 "serial"  => "sometimes|string",
                 "number"  => "sometimes|string",
@@ -73,30 +84,32 @@ class FilesController extends Controller
             ]);
 
             if ($validator->fails()) {
-                throw new Exception($validator->errors()->first(), 400);
+                $result['description'] = $validator->errors()->first();
+                return response()->json($result, 400);
             }
 
+            // check the request product type is valid
+            if (!$this->productIsValid($request)) {
+                $result['description'] = "Please enter a valid product code";
+                return response()->json($result, 400);
+            }
 
             // if ledger exists
-            $this->checkLedgerExists($request);
-
-            
+            if ($this->checkLedgerExists($request)) {
+                $result['description'] = "Ledger already exists";
+                return response()->json($result, 400);
+            }
+  
             // Create new ledger
-            $ledger = $this->createLedger($request);
+            $ledger = $this->createLedger($request, $result);
 
             $result = [
-                'status' => 0,
-                'description' => "Failed to create a new ledger"
+                'status' => $ledger ? 1 : 0,
+                'description' => $ledger ? "Success" : "Failed to create a new ledger",
+                'data' => $ledger ? new CompanyFile($ledger) : null
             ];
-            if ($ledger) {
-                $result = [
-                    'status' => 1,
-                    'description' => "Success",
-                    'data' => new CompanyFile($ledger)
-                ];
-            }
 
-            return $result;
+            return response()->json($result, 200);
         } catch (Exception $e) {
             throw new Exception($e->getMessage(), $e->getCode() ? $e->getCode() : null);
         }
