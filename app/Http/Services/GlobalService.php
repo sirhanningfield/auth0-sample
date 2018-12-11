@@ -32,8 +32,10 @@ class GlobalService
         $result = [
             'status' => 1,
             'msg' => "success",
-            'data' => $data
         ];
+        if($data){
+            $result['data'] = $data;
+        }
         return response()->json($result,200);
     }
 
