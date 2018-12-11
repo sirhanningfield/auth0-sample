@@ -10,6 +10,7 @@ use App\Ledger;
 use App\Http\Resources\CompanyFile;
 use App\Http\Resources\Response;
 use App\Http\Constants\Ledgers;
+use App\Http\Services\GlobalService;
 
 class FilesController extends Controller
 {
@@ -21,6 +22,58 @@ class FilesController extends Controller
     public function index()
     {
         //
+    }
+
+
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function addLedger(Request $request)
+    {
+        try {
+            // validate the incoming request
+            $validator = Validator::make($request->all(), [
+                "name" => "required|string",
+                "address" => "nullable|string",
+                "product"  => "required|integer",
+                "serial"  => "sometimes|string",
+                "number"  => "sometimes|string",
+                "business_id"  => "sometimes|string",
+            ]);
+
+            if ($validator->fails()) {
+                return GlobalService::returnError($validator->errors()->first(), 400);
+            }
+
+            // check the request product type is valid
+            if (!$this->productIsValid($request)) {
+                return GlobalService::returnError("Invalid product code", 400);
+            }
+
+            // check request params
+            if (!$this->validParams($request)) {
+                return GlobalService::returnError("Invalid parameters", 400);
+            }
+
+            // if ledger exists
+            if ($this->checkLedgerExists($request)) {
+                return GlobalService::returnError("Ledger already exists", 400);
+            }
+  
+            // Create new ledger
+            $ledger = $this->createLedger($request);
+            if(!$ledger){
+                return GlobalService::returnError("Could not create ledger", 401);
+            }
+            return GlobalService::returnResponse($ledger);
+
+            } catch (Exception $e) {
+            throw new Exception($e->getMessage(), $e->getCode() ? $e->getCode() : null);
+        }
     }
 
     private function checkLedgerExists($request)
@@ -38,7 +91,7 @@ class FilesController extends Controller
         return false;
     }
 
-    private function createLedger($request, $result)
+    private function createLedger($request)
     {
         $ledger = new Ledger;
         $ledger->name = $request->name;
@@ -75,64 +128,6 @@ class FilesController extends Controller
             }
         }
         return true;
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function addLedger(Request $request)
-    {
-        try {
-            $result['status'] = 0;
-            // validate the incoming request
-            $validator = Validator::make($request->all(), [
-                "name" => "required|string",
-                "address" => "nullable|string",
-                "product"  => "required|integer",
-                "serial"  => "sometimes|string",
-                "number"  => "sometimes|string",
-                "business_id"  => "sometimes|string",
-            ]);
-
-            if ($validator->fails()) {
-                $result['description'] = $validator->errors()->first();
-                return response()->json($result, 400);
-            }
-
-            // check the request product type is valid
-            if (!$this->productIsValid($request)) {
-                $result['description'] = "Invalid product code";
-                return response()->json($result, 400);
-            }
-
-            // check request params
-            if (!$this->validParams($request)) {
-                $result['description'] = "Invalid parameters";
-                return response()->json($result, 400);
-            }
-
-            // if ledger exists
-            if ($this->checkLedgerExists($request)) {
-                $result['description'] = "Ledger already exists";
-                return response()->json($result, 400);
-            }
-  
-            // Create new ledger
-            $ledger = $this->createLedger($request, $result);
-
-            $result = [
-                'status' => $ledger ? 1 : 0,
-                'description' => $ledger ? "Success" : "Failed to create a new ledger",
-                'data' => $ledger ? new CompanyFile($ledger) : null
-            ];
-
-            return response()->json($result, 200);
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage(), $e->getCode() ? $e->getCode() : null);
-        }
     }
 
     /**
