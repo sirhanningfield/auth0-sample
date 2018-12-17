@@ -5,7 +5,15 @@ namespace App\Http\Controllers\API;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Services\GlobalService;
+use App\Http\Resources\Date as DateResource;
 use Illuminate\Support\Facades\Validator;
+use App\EventNotification;
+use Carbon\Carbon;
+use App\Rules\validNotificationParameter;
+use App\Rules\ValidNotificationEvent;
+use App\Rules\ValidISOFormat;
+
+
 class EventsController extends Controller
 {
     /**
@@ -15,68 +23,66 @@ class EventsController extends Controller
     {
         
         // validate incoming request parameters
-        $validator = $this->validateRequest($request);
-        if (isset($validator)) {
-            return GlobalService::returnError($validator->errors()->first(), 400);
-        }
+        $this->validateRequest($request);
         
-        // validate date format for "_time" and "parameters->expiry"
-        $timeFields = [$request->_time, $request->parameters['expiry']];
-        if(!GlobalService::validateISO8601TimeFormat($timeFields)){
-            return GlobalService::returnError("Invalid date format", 400);
+        // Log the notification event
+        if(!$this->logEventNotification($request)){
+            return GlobalService::returnError("Cannot log notification", 400);
         }
-
-        
         // check event type and put a worker accordingly here ...
 
         return GlobalService::returnResponse();
-        
-         
+           
     }
-
 
     private function validateRequest($request)
     {
-        $params = ['request', 'event', 'parameters']; // The params that need to be validated
-        foreach($params as $param){
-            $validator = $this->validateParam($request,$param);
-            if($validator){
-                return $validator;
-            }
+        
+        $validator = Validator::make($request->all(), [
+            "_time" => ["required", new ValidISOFormat],
+            "event" => ["required","array", new ValidNotificationEvent],
+            "parameters"  => ['required', 'array', new ValidNotificationParameter]
+        ]);
+        if($validator->fails()){
+            print_r($validator->errors()->first());
+            exit;
         }
-        return null;
+        
     }
 
-    public function validateParam($request, $param)
-    {
-        $validator = null;
-        switch ($param) {
-            case 'request':
-                $validator = Validator::make($request->all(), [
-                    "_time" => "required",
-                    "event" => "required|array",
-                    "parameters"  => "required|array"
-                ]);
-                break;
-            case 'event':
-                // validate event parameter
-                $validator = Validator::make($request->event,[
-                    "name" => "required|string",
-                    "provider" => "required|string",
-                    "source" => "sometimes"
-                ]);
-                break;
-            case 'parameters':
-                // validate parameters
-                $validator = Validator::make($request->parameters,[
-                    "filename" => "required|string",
-                    "expiry" => "required",
-                ]);
-                break;
+    private function logEventNotification($request){
+       
+        $notification = new EventNotification;
+        $notification->time = $this->toUTCdateTime($request->_time)['date'];
+        $notification->time_tz = $this->toUTCdateTime($request->_time)['timezone'];
+        $notification->event_name = $request->event['name'];
+        $notification->provider = $request->event['provider'] ;
+        $notification->source = $request->event['source'] ? $request->event['source'] : null;
+        $notification->filename = $request->parameters['filename'];
+        $notification->expiry = $this->toUTCdateTime($request->parameters['expiry'])['date'];
+        $notification->expiry_tz = $this->toUTCdateTime($request->parameters['expiry'])['timezone'];
+        if(!$notification->save()){
+            return false;
         }
-        if ($validator && $validator->fails()) {
-            return $validator;
-        }
+        return $notification;
     }
 
+    /**
+     * string $date ISO8601 date from the API request e.g. "2018-10-30T09:56:44+08:00"
+     * 
+     * @return string e.g. ""
+     */
+    private function toUTCdateTime($date){
+        $format = \DateTime::ISO8601;
+        $dateObj = new \DateTime();
+        $dateTime = $dateObj->createFromFormat($format, $date);
+        $returnDate = $dateTime->format('Y-m-d H:i:s');
+        $timezone = $dateTime->getTimezone()->getName();
+        return [
+            'date' => $returnDate,
+            'timezone' => $timezone
+        ];
+    }
+
+    
 }
