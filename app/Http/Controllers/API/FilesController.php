@@ -26,57 +26,52 @@ class FilesController extends Controller
      */
     public function onboard(Request $request)
     {
-        try {
-            // validate the incoming request
-            $validator = Validator::make($request->all(), [
-                "name" => "required|string",
-                "address" => "nullable|string",
-                "product"  => ["required","integer", new ValidProductType],
-                "serial"  => "sometimes|string",
-                "number"  => "sometimes|string",
-                "business_id"  => "sometimes|string"
-            ]);
+        
+        // validate the incoming request
+        $validator = Validator::make($request->all(), [
+            "name" => "required|string",
+            "address" => "nullable|string",
+            "product"  => ["required","integer", new ValidProductType],
+            "serial"  => "sometimes|string",
+            "number"  => "sometimes|string",
+            "business_id"  => "sometimes|string"
+        ]);
 
-            if ($validator->fails()) {
-                return GlobalService::returnError($validator->errors()->first(), 400);
-            }
-
-            // check request params
-            if (!$this->validParams($request)) {
-                return GlobalService::returnError("Invalid parameters", 400);
-            }
-
-            // if ledger exists
-            if (Ledger::exists($request->serial, $request->number, $request->business_id)) {
-                return GlobalService::returnError("Ledger already exists", 400);
-            }
-  
-            // Create new ledger
-            $ledger = new Ledger;
-            $ledger->name = $request->name;
-            $ledger->product = $request->product;
-            $ledger->address = isset($request->address) ? $request->address : null;
-            $ledger->serial = isset($request->serial) ? $request->serial : null;
-            $ledger->number = isset($request->number) ? $request->number : null;
-            $ledger->business_id = isset($request->business_id) ? $request->business_id : null;
-            $ledger->status = true; // default status is true for new ledgers
-            if (!$ledger->save()) {
-                return GlobalService::returnError("Could not create ledger", 401);
-            }
-
-            return GlobalService::returnResponse($ledger);
-
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage(), $e->getCode() ? $e->getCode() : null);
+        if ($validator->fails()) {
+            // throw new ValidatorException($validator);
+            return GlobalService::returnError($validator->errors()->first(), 400);
         }
+
+        // check request params
+        if (!$this->validParams($request)) {
+            return GlobalService::returnError("Invalid parameters", 400);
+        }
+
+        // if ledger exists
+        if (Ledger::exists($request->serial, $request->number, $request->business_id)) {
+            return GlobalService::returnError("Ledger already exists", 400);
+        }
+
+        // Create new ledger
+        $ledger = new Ledger;
+        $ledger->name = $request->name;
+        $ledger->product = $request->product;
+        $ledger->address = isset($request->address) ? $request->address : null;
+        $ledger->serial = isset($request->serial) ? $request->serial : null;
+        $ledger->number = isset($request->number) ? $request->number : null;
+        $ledger->business_id = isset($request->business_id) ? $request->business_id : null;
+        $ledger->status = true; // default status is true for new ledgers
+        if (!$ledger->save()) {
+            return GlobalService::returnError("Could not create ledger", 401);
+        }
+
+        return GlobalService::returnResponse($ledger);
 
     }
 
 
     private function validParams($request)
     {
-        print_r($request->all());
-        exit;
         if ($request->product == Ledgers::TYPE_PREMIER) {
             if (!isset($request->serial) || !isset($request->number) || isset($request->business_id)) {
                 return false;

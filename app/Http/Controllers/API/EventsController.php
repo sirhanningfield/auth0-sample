@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use App\Rules\validNotificationParameter;
 use App\Rules\ValidNotificationEvent;
 use App\Rules\ValidISOFormat;
+use App\Exceptions\ValidatorException;
 
 
 class EventsController extends Controller
@@ -44,8 +45,7 @@ class EventsController extends Controller
             "parameters"  => ['required', 'array', new ValidNotificationParameter]
         ]);
         if($validator->fails()){
-            print_r($validator->errors()->first());
-            exit;
+            throw new ValidatorException($validator);
         }
         
     }
