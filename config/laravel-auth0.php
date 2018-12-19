@@ -74,6 +74,8 @@ return array(
     */
     'api_identifier'  => getenv('API_IDENTIFIER'),
 
-    'supported_algs' => ['RS256']
+    'supported_algs' => ['RS256', 'HS256'],
+    
+    'secret_base64_encoded' => false
 
 );
