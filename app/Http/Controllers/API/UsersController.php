@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use Validator;
 use App\User;
 use App\UserLedger;
+use App\Ledger;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -50,5 +51,40 @@ class UsersController extends Controller
         {
           return response()->json(['message' => 'Users record created failed.'], 500);
         }             
+    }
+
+    public function getUserInfo(Request $request)
+    {
+        try {
+            // get user auth_id from request
+            list($tag,$auth_id) = explode("|",$request->user->sub);
+
+            // Get the user details
+            $user = User::where('auth_id',$auth_id)->first();
+            if(!$user){
+                return response()->json(['error' => 'User not found.'], 404);
+            }
+
+            $userLedgers = [];
+            foreach ($user->ledgers as $ledger) {
+                $newledger = Ledger::where('id',$ledger->ledger_id)->first();
+                $userLedgers[] = [
+                    'name' => $newledger->name,
+                    'ledger_id' => $ledger->ledger_id
+                ];
+            }
+
+            $userInfo = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'auth_id' => $user->auth_id,
+                'ledgers' => $userLedgers
+            ];
+
+            return response()->json(['user' => $userInfo], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
+        
     }
 }

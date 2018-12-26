@@ -50,7 +50,7 @@ class CheckJWT
         } catch (CoreException $e) {
             return response()->json(["message" => $e->getMessage()], 401);
         }
-
+        $request->user = $user;
         return $next($request);
     }    
 }
