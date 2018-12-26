@@ -48,7 +48,7 @@ class FilesController extends Controller
         }
 
         // if ledger exists
-        if (Ledger::exists($request->serial, $request->number, $request->business_id)) {
+        if (Ledger::exists($request)) {
             return GlobalService::returnError("Ledger already exists", 400);
         }
 
@@ -82,5 +82,31 @@ class FilesController extends Controller
             }
         }
         return true;
+    }
+
+    public function getLedgerId(Request $request){
+
+        $ledger = null;
+        
+        // check request params
+        if (!$this->validParams($request)) {
+            return GlobalService::returnError("Invalid parameters", 400);
+        }
+    
+        // check if exists
+        if ($request->product == Ledgers::TYPE_PREMIER && isset($request->serial) && isset($request->number)) {
+            
+            $ledger = Ledger::exists($request);
+        } elseif ($request->product == Ledgers::TYPE_FINANCIO && isset($request->business_id)) {
+            $ledger = Ledger::exists($request);
+        }
+        $result = [
+            'ledger_id' => $ledger->id,
+            'serial' => $ledger->serial ? $ledger->serial : null,
+            'number' => $ledger->number ? $ledger->number : null,
+            'business_id' => $ledger->business_id ?  $ledger->business_id  : null
+        ];
+        if($ledger) return GlobalService::returnResponse($result);
+        return GlobalService::returnError("Cannot find ledger", 404);
     }
 }

@@ -24,17 +24,17 @@ class Ledger extends Model
         return $this->hasMany('App\LedgerBankCredential');
     }
 
-    public static function exists($serial = null, $number = null, $businessId = null )
+    public static function exists($request)
     {
-        $ledger = [];
-        if (isset($serial) && isset($number)) {
-            $ledger = Ledger::where('serial', '=', $serial)->where('number', '=', $number)->get();
+        $ledger = null;
+        if (isset($request->serial) && isset($request->number)) {
+            $ledger = Ledger::where('serial', '=', $request->serial)->where('number', '=', $request->number)->first();
         } elseif (isset($request->business_id)) {
-            $ledger = Ledger::where('business_id', '=', $businessId)->get();
+            $ledger = Ledger::where('business_id', '=', $request->businessId)->first();
         }
-
-        if (count($ledger) > 0) {
-            return true;
+        
+        if ($ledger) {
+            return $ledger;
         }
         return false;
     }
