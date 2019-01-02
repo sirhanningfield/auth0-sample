@@ -35,6 +35,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+
+
 //User
 Route::post('user/ledger/{ledger}','API\UsersController@create');
 
@@ -44,6 +46,9 @@ Route::get('/login', 'Auth\Auth0IndexController@login')->name( 'login' );
 Route::get('/public', function (Request $request) {
     return response()->json(["message" => "Public endpoint! Access token not required."]);
 });
+Route::get('/private', function (Request $request) {
+    return response()->json(["message" => "VALID access_token. Welcome to the dark side !!!"]);
+})->middleware('jwt');
 
 Route::get('/userInfo', 'API\UsersController@getUserInfo')->middleware('jwt');
 
