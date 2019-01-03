@@ -53,6 +53,10 @@ Route::get('/public', function (Request $request) {
 
 Route::get('/userInfo', 'API\UsersController@getUserInfo')->middleware('jwt');
 
+Route::get('/private', function (Request $request) {
+    return response()->json(["message" => "Private endpoint! Access token required."]);
+})->middleware('jwt');
+
 Route::get('/private-scoped', function (Request $request) {
     return response()->json([
         "message" => "Valid Private-scoped endpoint Access Token."
