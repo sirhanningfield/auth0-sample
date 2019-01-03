@@ -39,6 +39,7 @@ class SerialsController extends Controller
     public function show($serial, $file)
     {
         $file = \App\Ledger::where('serial', $serial)->where('number', $file)->firstOrFail();
+
         return new CompanyFileResource($file);
     }
 
@@ -63,7 +64,7 @@ class SerialsController extends Controller
         if ($request->filled('data.name')) {
             $file->name = $request->input('data.name');
         }
-            
+
         $file->save();
 
         return new CompanyFileResource($file);

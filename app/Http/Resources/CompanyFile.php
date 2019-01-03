@@ -21,6 +21,7 @@ class CompanyFile extends JsonResource
             'serial' => $this->serial,
             'number' => $this->number,
             'business_id' => $this->business_id,
+
             'name' => $this->name,
             'address' => $this->address,
             'created_at' => $this->created_at,

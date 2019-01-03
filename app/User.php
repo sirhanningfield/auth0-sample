@@ -6,8 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class User extends Model
 {
-    //
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name','email','auth_id'];
 
-    protected $hidden = ['password','secret_key'];
+    protected $hidden = ['auth_id'];   
+
+    public function ledgers()
+    {
+        return $this->hasMany('App\UserLedger');
+    }
+
 }
